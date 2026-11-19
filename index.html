@@ -62,6 +62,27 @@
 
   .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
 
+  /* Back to top: a round button at the bottom right once the hero has scrolled away. */
+  .to-top {
+    position: fixed; z-index: 60;
+    right: max(20px, env(safe-area-inset-right));
+    bottom: max(20px, env(safe-area-inset-bottom));
+    width: 48px; height: 48px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--panel); border: 1px solid var(--border-2); color: var(--accent);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    opacity: 0; visibility: hidden; transform: translateY(12px); pointer-events: none;
+    transition: opacity 200ms ease, transform 200ms ease, visibility 0s linear 200ms,
+      border-color 150ms ease;
+  }
+  .to-top.show {
+    opacity: 1; visibility: visible; transform: none; pointer-events: auto;
+    transition: opacity 200ms ease, transform 200ms ease, border-color 150ms ease;
+  }
+  .to-top:hover { border-color: var(--accent-dim); }
+  .to-top:focus-visible { border-radius: 50%; }
+  .to-top svg { width: 20px; height: 20px; }
+
   /* every anchored section clears the sticky nav when jumped to */
   section[id] { scroll-margin-top: 76px; }
 
@@ -878,6 +899,8 @@
 </section>
 </main>
 
+<a class="to-top" href="#top" aria-label="Back to top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></a>
+
 <!-- ── Footer ───────────────────────────────────────────── -->
 <footer>
   <div class="wrap foot">
@@ -886,7 +909,6 @@
       <a href="#features">features</a>
       <a href="#keys">keys</a>
       <a href="https://github.com/ancane/yafim">github</a>
-      <a href="#top">top ↑</a>
     </nav>
   </div>
 </footer>
@@ -904,7 +926,10 @@
       if (section) links.push({ a: a, section: section });
     });
     var current = null;
+    var toTop = document.querySelector('.to-top');
     function update() {
+      // Back to top once the hero has scrolled away.
+      toTop.classList.toggle('show', window.scrollY > window.innerHeight * 0.9);
       var hit = null;
       links.forEach(function (l) {
         var r = l.section.getBoundingClientRect();
@@ -921,6 +946,12 @@
       queued = true;
       requestAnimationFrame(function () { queued = false; update(); });
     }
+    // To the very top, and the keyboard's place with it: the brand link, first in the bar.
+    toTop.addEventListener('click', function (e) {
+      e.preventDefault();
+      window.scrollTo({ top: 0 });
+      document.querySelector('.brand').focus({ preventScroll: true });
+    });
     window.addEventListener('scroll', queue, { passive: true });
     window.addEventListener('resize', queue);
     update();
