@@ -793,6 +793,19 @@
         <p>Give any command in the panels, the viewer or the editor the keys you like: press them in a VS Code-style box, see conflicts at once, reset anytime. Saved to a plain keys.toml you can edit by hand or keep in your dotfiles.</p>
         <p class="keys">Options › Key bindings…</p>
       </div>
+      <span class="cluster"><i>//</i> staying up to date</span>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></span>
+        <h3>Updates in one step</h3>
+        <p>Once a day — if you allow it — yafim checks for a newer release and shows <i>Update to …</i> in the menu bar, never a dialog over your work. Read the notes, then Install and restart: the new version is downloaded, checked against the release's signed list of files before anything is replaced, and started with your windows as they were. Or let it go in the next time you quit. On a Mac, Homebrew works too: <code>brew install --cask ancane/yafim/yafim</code>.</p>
+        <p class="keys">Help › Check for updates… · Settings › Updates</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+        <h3>Crash reports you see first</h3>
+        <p>If yafim ever crashes, it writes a report: the version, your system, what went wrong and where in yafim's code — with no file, folder, user or server names in it. The next start shows you the whole report and asks before anything is sent; Always send and Never are a setting away. Where a filter blocks the reporting service, save the report or copy it and pass it on yourself.</p>
+        <p class="keys">Settings › Crash reports: Ask · Always send · Never</p>
+      </div>
     </div>
   </div>
 </section>
@@ -865,7 +878,7 @@
         Download for macOS / Linux / Windows
       </a>
     </div>
-    <p class="trust">Rust, no telemetry, no installer
+    <p class="trust">Rust, nothing sent without your explicit consent, no installer
       — the macOS DMG is signed ad hoc, so the first launch wants right-click › Open;
       the Windows zip asks SmartScreen once (More info › Run anyway).</p>
   </div>
