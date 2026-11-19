@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>yafim — the dual-panel file manager for people who live on their keyboard</title>
+<meta name="description" content="yafim (Yet Another File Manager) is a keyboard-first, dual-panel file manager written in Rust. Thumbnails and a gallery, a command palette, a quick view that reads almost anything, a Markdown editor with live preview, a terminal with splits, servers and cloud drives, git, and a see-through window — on macOS, Linux and Windows.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="yafim">
+<meta property="og:title" content="yafim — the dual-panel file manager for people who live on their keyboard">
+<meta property="og:description" content="A keyboard-first, dual-panel file manager in Rust. Command palette, quick view for almost anything, Markdown editor with live preview, terminal in splits, git status, see-through window — macOS, Linux, Windows.">
+<meta property="og:image" content="img/see-through-desktop.webp">
+<meta name="theme-color" content="#0B0F14">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0B0F14;
+    --bg-raise:  #10161D;
+    --panel:     #11161D;
+    --panel-2:   #151C25;
+    --border:    #1E2630;
+    --border-2:  #2A3644;
+    --text:      #E6EDF3;
+    --muted:     #8B98A5;
+    --faint:     #7E8D9C;
+    --accent:    #3DDC84;
+    --accent-dim:#1F7A4D;
+    --amber:     #E5B567;
+    --blue:      #6CB6FF;
+    --radius:    10px;
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: rgba(61, 220, 132, 0.25); }
+
+  a { color: inherit; }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+  /* every anchored section clears the sticky nav when jumped to */
+  section[id] { scroll-margin-top: 76px; }
+
+  /* ── Nav ─────────────────────────────────────────────── */
+  .nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(11, 15, 20, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 60px;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    min-height: 44px;
+    font-family: var(--mono); font-weight: 700; font-size: 18px;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+  }
+  .brand .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 10px rgba(61, 220, 132, 0.8);
+  }
+  .nav-links { display: flex; align-items: center; gap: 20px; }
+  .nav-links a {
+    font-family: var(--mono); font-size: 13px;
+    color: var(--muted); text-decoration: none;
+    transition: color 200ms ease;
+  }
+  /* section links: the padding is the tap target, so it counts on desktop too */
+  .nav-links a.act { padding: 12px 10px; }
+  .nav-links a:hover { color: var(--text); }
+  /* the section you are reading is lit in the nav (set by the scroll-spy below) */
+  .nav-links a.act[aria-current] {
+    color: var(--accent);
+    box-shadow: inset 0 -2px 0 var(--accent);
+    border-radius: 2px;
+  }
+  .nav-links .sm { display: none; }
+  /* keep the nav Download button's own colors (nav-link rules above win on specificity) */
+  .nav-links a.btn-primary, .nav-links a.btn-primary:hover { color: #062015; }
+  /* Narrow screens: the sticky row shrinks to 56px and keeps the three sections
+     people actually hunt for on a phone, each a 44px chip. "what's new" and the
+     github link drop out: the first is directly below the fold, the footer holds
+     the second. */
+  @media (max-width: 720px) {
+    .nav .wrap { padding: 0 16px; }
+    .nav-inner { height: 56px; }
+    .brand { font-size: 16px; }
+    .nav-links { gap: 6px; }
+    .nav-links .lg { display: none; }
+    .nav-links .sm { display: inline; }
+    .nav-links a.act {
+      flex: 0 0 auto;
+      min-height: 44px; padding: 0 8px; font-size: 12px;
+      display: inline-flex; align-items: center;
+      background: var(--panel); border: 1px solid var(--border-2);
+      border-radius: 8px;
+    }
+    .nav-links a.act.hide-sm { display: none; }
+    .nav-links a.btn { min-height: 44px; padding: 0 10px; font-size: 12px; }
+  }
+  /* The narrowest phones (320px): the row can't hold the new chip, and what's
+     new is the first block under the hero anyway. */
+  @media (max-width: 350px) { .nav-links a.narrow-hide { display: none; } }
+
+  /* ── Buttons ─────────────────────────────────────────── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    font-family: var(--mono); font-size: 14px; font-weight: 600;
+    min-height: 44px; padding: 10px 22px;
+    border-radius: 8px; border: 1px solid transparent;
+    text-decoration: none; cursor: pointer;
+    transition: background 200ms ease, border-color 200ms ease, color 200ms ease;
+  }
+  .btn-primary {
+    background: var(--accent); color: #062015;
+  }
+  .btn-primary:hover { background: #5CE79A; }
+  .btn-ghost {
+    background: transparent; color: var(--text);
+    border-color: var(--border-2);
+  }
+  .btn-ghost:hover { border-color: var(--muted); background: var(--panel-2); }
+  .btn svg { width: 16px; height: 16px; }
+
+  /* ── Hero ────────────────────────────────────────────── */
+  .eyebrow {
+    font-family: var(--mono); font-size: 13px; color: var(--accent);
+    margin-bottom: 20px; letter-spacing: 0.04em;
+  }
+  .hero h1 {
+    font-family: var(--mono); font-weight: 700;
+    font-size: clamp(34px, 5vw, 54px);
+    line-height: 1.12; letter-spacing: -0.03em;
+    margin-bottom: 22px;
+  }
+  .hero h1 .green { color: var(--accent); }
+  .hero .lede {
+    font-size: 18px; color: var(--muted);
+    max-width: 46ch; margin-bottom: 32px;
+  }
+  .hero-ctas { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 22px; }
+  .platforms {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px;
+    font-family: var(--mono); font-size: 12.5px; color: var(--faint);
+  }
+  .platforms span { display: inline-flex; align-items: center; gap: 7px; }
+  .platforms svg { width: 15px; height: 15px; }
+
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ── Hero: centred, frosted yafim panels floating either side ── */
+  .hero { position: relative; overflow: hidden; padding: 104px 0 64px; isolation: isolate; }
+  .hero-center { position: relative; z-index: 2; text-align: center; max-width: 860px; }
+  .hero-center .lede { margin-left: auto; margin-right: auto; max-width: 58ch; }
+  .hero-center .hero-ctas, .hero-center .platforms { justify-content: center; }
+  .orb {
+    position: absolute; z-index: -1; border-radius: 50%;
+    filter: blur(90px); opacity: 0.14; pointer-events: none;
+    animation: drift 16s ease-in-out infinite alternate;
+  }
+  .orb-a { width: 480px; height: 380px; left: -120px; top: 80px; background: var(--accent); }
+  .orb-b { width: 540px; height: 400px; right: -160px; top: 10px; background: var(--blue); animation-duration: 19s; }
+  @keyframes drift { to { transform: translate(50px, 40px) scale(1.1); } }
+
+  .float { position: absolute; z-index: 1; width: 236px; pointer-events: none; display: none; }
+  @media (min-width: 1240px) { .float { display: block; } }
+  .float-left  { left: calc(50% - 660px); top: 150px; animation: floatL 9s ease-in-out infinite; }
+  .float-right { right: calc(50% - 660px); top: 118px; animation: floatR 11s ease-in-out infinite; }
+  @keyframes floatL { 0%, 100% { transform: rotate(-9deg) translateY(0); } 50% { transform: rotate(-7deg) translateY(-14px); } }
+  @keyframes floatR { 0%, 100% { transform: rotate(8deg) translateY(0); } 50% { transform: rotate(6deg) translateY(-18px); } }
+
+  .glass {
+    position: relative;
+    background: rgba(21, 28, 37, 0.5);
+    border: 1px solid rgba(230, 237, 243, 0.08);
+    border-radius: 10px;
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 22px 50px rgba(0, 0, 0, 0.45);
+    font-family: var(--mono); font-size: 11px; line-height: 14px; color: var(--muted);
+  }
+  /* A folder's tab on top: these cards are folders, opened as yafim panels. */
+  .glass.folder::before {
+    content: ""; position: absolute; left: 14px; top: -11px; width: 76px; height: 12px;
+    border-radius: 7px 7px 0 0;
+    background: rgba(21, 28, 37, 0.5); border: 1px solid rgba(230, 237, 243, 0.08); border-bottom: none;
+  }
+  .glass.behind { position: absolute; inset: -22px -26px 22px 26px; opacity: 0.35; transform: rotate(5deg); }
+  .glass + .glass.small { margin-top: 26px; margin-left: 40px; }
+  .g-head {
+    height: 26px; padding: 6px 10px; display: flex; gap: 6px;
+    border-bottom: 1px solid rgba(230, 237, 243, 0.06); color: var(--accent);
+    white-space: nowrap; overflow: hidden;
+  }
+  .g-head .br { color: var(--faint); margin-left: auto; }
+  .g-rows { position: relative; padding-bottom: 6px; }
+  .g-row { position: relative; z-index: 1; height: 20px; padding: 3px 10px; display: flex; gap: 8px; white-space: nowrap; }
+  .g-row .d { color: var(--blue); }
+  .g-row .s { margin-left: auto; color: var(--faint); }
+  .g-row .m { color: var(--amber); }
+  .g-cursor {
+    position: absolute; left: 0; right: 0; top: 0; height: 20px;
+    background: rgba(61, 220, 132, 0.18); border-left: 2px solid var(--accent);
+    animation: walk 7s steps(1) infinite;
+  }
+  @keyframes walk {
+    0% { top: 0; } 15% { top: 20px; } 30% { top: 40px; } 45% { top: 60px; }
+    60% { top: 80px; } 75% { top: 60px; } 88% { top: 40px; }
+  }
+  .g-term { padding: 8px 10px 10px; }
+  .g-term .p { color: var(--accent); }
+  .g-term .r { color: #FF7B72; }
+  .g-term .g { color: var(--accent); }
+  .typed {
+    display: inline-block; vertical-align: bottom; overflow: hidden; white-space: nowrap;
+    width: 0; animation: type 7s steps(16) infinite;
+  }
+  @keyframes type { 0%, 12% { width: 0; } 45%, 100% { width: 16ch; } }
+  .g-caret { display: inline-block; width: 6px; height: 12px; background: var(--accent); vertical-align: -2px; animation: blink 1.1s steps(1) infinite; }
+  .g-op { padding: 9px 10px 11px; }
+  .g-op b { color: var(--text); font-weight: 600; }
+  .g-bar { height: 5px; margin: 8px 0 6px; border-radius: 3px; background: rgba(230, 237, 243, 0.08); overflow: hidden; }
+  .g-bar i { display: block; height: 100%; width: 4%; background: var(--accent); animation: fill 6s ease-in-out infinite; }
+  @keyframes fill { 0% { width: 4%; } 70%, 100% { width: 100%; } }
+  .g-op .ok { color: var(--accent); opacity: 0; animation: ok 6s steps(1) infinite; }
+  @keyframes ok { 0%, 70% { opacity: 0; } 72%, 100% { opacity: 1; } }
+
+  .hero-shot { position: relative; z-index: 2; margin-top: 64px; }
+  .hero-shot img {
+    display: block; width: 100%; height: auto; border-radius: 16px;
+    border: 1px solid var(--border-2);
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
+  }
+  .caption {
+    margin-top: 14px; text-align: center;
+    font-family: var(--mono); font-size: 12.5px; color: var(--faint);
+  }
+
+  /* ── What's new: big pictures, newest and most significant first ── */
+  .showcase { border-top: 1px solid var(--border); }
+  .show-row {
+    display: grid; grid-template-columns: 1fr; gap: 28px; align-items: center;
+    padding: 40px 0; border-bottom: 1px solid var(--border);
+  }
+  .show-row:last-child { border-bottom: none; }
+  @media (min-width: 960px) {
+    .show-row { grid-template-columns: 1.45fr 1fr; gap: 48px; }
+    .show-row.flip figure { order: 2; }
+  }
+  .show-row figure a { display: block; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-2); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45); transition: border-color 200ms ease, transform 200ms ease; }
+  .show-row figure a:hover { border-color: var(--accent-dim); transform: translateY(-2px); }
+  .show-row img { display: block; width: 100%; height: auto; }
+  .show-row h3 { font-family: var(--mono); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; margin-bottom: 12px; }
+  .show-row p { color: var(--muted); font-size: 15.5px; }
+  .show-row ul { margin: 14px 0 0 0; }
+  .show-row li { list-style: none; position: relative; padding-left: 18px; color: var(--muted); font-size: 14.5px; margin-bottom: 6px; }
+  .show-row li::before { content: "▸"; position: absolute; left: 0; color: var(--accent); }
+  .show-row .keys { margin-top: 16px; font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .show-row .keys kbd {
+    font-family: var(--mono); font-size: 11px;
+    background: var(--panel-2); border: 1px solid var(--border-2);
+    border-bottom-width: 2px; border-radius: 5px;
+    padding: 1px 7px; color: var(--text); margin-right: 4px;
+  }
+
+  /* ── Section chrome ──────────────────────────────────── */
+  section { padding: 80px 0; }
+  .kicker {
+    font-family: var(--mono); font-size: 13px; color: var(--accent);
+    margin-bottom: 12px;
+  }
+  h2 {
+    font-family: var(--mono); font-weight: 700;
+    font-size: clamp(26px, 3.4vw, 36px);
+    letter-spacing: -0.02em; line-height: 1.2;
+    margin-bottom: 14px;
+  }
+  .sub { color: var(--muted); max-width: 60ch; font-size: 17px; margin-bottom: 48px; }
+
+  /* ── Features ────────────────────────────────────────── */
+  .features { border-top: 1px solid var(--border); }
+  .fgrid {
+    display: grid; grid-template-columns: 1fr; gap: 16px;
+  }
+  @media (min-width: 640px)  { .fgrid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1000px) { .fgrid { grid-template-columns: repeat(3, 1fr); } }
+  .fcard {
+    background: var(--bg-raise);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 26px 24px;
+    transition: border-color 200ms ease, background 200ms ease;
+  }
+  .fcard:hover { border-color: var(--accent-dim); background: var(--panel); }
+  .fcard .icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; border-radius: 9px;
+    background: rgba(61, 220, 132, 0.10);
+    border: 1px solid var(--accent-dim);
+    color: var(--accent);
+    margin-bottom: 18px;
+  }
+  .fcard .icon svg { width: 20px; height: 20px; }
+  .fgrid .cluster {
+    grid-column: 1 / -1;
+    font-family: var(--mono); font-size: 13px; font-weight: 600;
+    color: var(--muted); letter-spacing: 0.02em;
+    margin-top: 20px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .fgrid .cluster:first-child { margin-top: 0; }
+  .fgrid .cluster i { color: var(--accent); font-style: normal; }
+  .fcard h3 {
+    font-family: var(--mono); font-size: 16px; font-weight: 600;
+    margin-bottom: 8px; letter-spacing: -0.01em;
+  }
+  .fcard p { font-size: 14.5px; color: var(--muted); }
+  .fcard .keys {
+    margin-top: 14px;
+    font-family: var(--mono); font-size: 12px; color: var(--faint);
+  }
+  .fcard .keys kbd {
+    font-family: var(--mono); font-size: 11px;
+    background: var(--panel-2); border: 1px solid var(--border-2);
+    border-bottom-width: 2px; border-radius: 5px;
+    padding: 1px 7px; color: var(--text); margin-right: 4px;
+  }
+
+  /* ── Keys / how it works ─────────────────────────────── */
+  .keys-sec { border-top: 1px solid var(--border); background: var(--bg-raise); }
+  .name-sec { border-top: 1px solid var(--border); }
+  .name-sec .sub { margin-bottom: 0; }
+  .keygrid {
+    display: grid; grid-template-columns: 1fr; gap: 40px;
+  }
+  @media (min-width: 900px) { .keygrid { grid-template-columns: 1fr 1fr; gap: 56px; } }
+  .keytable {
+    border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; background: var(--panel);
+    font-family: var(--mono); font-size: 13.5px;
+  }
+  .keyrow {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .keyrow:last-child { border-bottom: none; }
+  .keyrow .desc { color: var(--muted); }
+  .keyrow kbd {
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
+    background: var(--panel-2); border: 1px solid var(--border-2);
+    border-bottom-width: 2px; border-radius: 6px;
+    padding: 3px 10px; color: var(--accent);
+    white-space: nowrap;
+  }
+  .principles li {
+    display: flex; gap: 14px; padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+    list-style: none;
+  }
+  .principles li:last-child { border-bottom: none; }
+  .principles .num {
+    font-family: var(--mono); font-size: 13px; color: var(--accent);
+    flex: none; padding-top: 2px;
+  }
+  .principles b {
+    font-family: var(--mono); font-size: 15px; font-weight: 600;
+    display: block; margin-bottom: 3px; letter-spacing: -0.01em;
+  }
+  .principles span { color: var(--muted); font-size: 14.5px; }
+
+  /* ── Final CTA ───────────────────────────────────────── */
+  .cta { border-top: 1px solid var(--border); text-align: center; }
+  .cta .trust {
+    margin-top: 22px;
+    font-family: var(--mono); font-size: 12.5px; color: var(--faint);
+    max-width: 62ch;
+  }
+  .cta .trust b { color: var(--muted); font-weight: 600; }
+  .cta .cmd {
+    display: inline-block;
+    font-family: var(--mono); font-size: clamp(16px, 2.6vw, 22px);
+    background: var(--panel);
+    border: 1px solid var(--border-2);
+    border-radius: 10px;
+    padding: 16px 28px;
+    margin: 8px 0 36px;
+    color: var(--text);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  }
+  .cta .cmd .p { color: var(--accent); margin-right: 10px; user-select: none; }
+  .cta-ctas { display: flex; justify-content: center; flex-wrap: wrap; gap: 14px; }
+
+  /* ── Footer ──────────────────────────────────────────── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 0;
+  }
+  .foot {
+    display: flex; flex-wrap: wrap; gap: 16px;
+    align-items: center; justify-content: space-between;
+    font-family: var(--mono); font-size: 12.5px; color: var(--faint);
+  }
+  .foot a { color: var(--muted); text-decoration: none; transition: color 200ms ease; }
+  .foot a:hover { color: var(--accent); }
+  .foot .flinks { display: flex; gap: 22px; }
+</style>
+</head>
+<body>
+
+<!-- ── Nav ──────────────────────────────────────────────── -->
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top" aria-label="yafim home"><span class="dot" aria-hidden="true"></span>yafim</a>
+    <nav class="nav-links" aria-label="Main navigation">
+      <a href="#new" class="act narrow-hide"><span class="lg">what's new</span><span class="sm">new</span></a>
+      <a href="#features" class="act">features</a>
+      <a href="#keys" class="act">keys</a>
+      <a href="https://github.com" class="act hide-sm" aria-label="yafim on GitHub">github</a>
+      <a class="btn btn-primary" href="#download">Download</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+<!-- ── Hero ─────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="orb orb-a" aria-hidden="true"></div>
+  <div class="orb orb-b" aria-hidden="true"></div>
+
+  <!-- Frosted folders, opened as yafim panels, floating either side of the headline -->
+  <div class="float float-left" aria-hidden="true">
+    <div class="glass folder behind"></div>
+    <div class="glass folder">
+      <div class="g-head">~/projects/orbit <span class="br">⎇ main</span></div>
+      <div class="g-rows">
+        <div class="g-cursor"></div>
+        <div class="g-row"><span class="d">▸ assets/</span><span class="s">&lt;DIR&gt;</span></div>
+        <div class="g-row"><span class="d">▸ docs/</span><span class="s">&lt;DIR&gt;</span></div>
+        <div class="g-row"><span class="d">▸ src/</span><span class="m">●</span><span class="s">&lt;DIR&gt;</span></div>
+        <div class="g-row"><span>▪ Cargo.toml</span><span class="s">135 B</span></div>
+        <div class="g-row"><span>▪ README.md</span><span class="s">536 B</span></div>
+      </div>
+    </div>
+    <div class="glass small">
+      <div class="g-op"><b>Copy</b> 3 files → ~/backup
+        <div class="g-bar"><i></i></div>
+        sha-256 <span class="ok">✓ verified</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="float float-right" aria-hidden="true">
+    <div class="glass folder behind"></div>
+    <div class="glass folder">
+      <div class="g-head">Terminal <span class="br">⌘O</span></div>
+      <div class="g-term">
+        <div><span class="p">orbit $</span> git status -s</div>
+        <div><span class="r">&nbsp;M</span> src/server.rs</div>
+        <div><span class="g">M&nbsp;</span> src/config.rs</div>
+        <div><span class="r">??</span> src/metrics.rs</div>
+        <div><span class="p">orbit $</span> <span class="typed">cargo run --release</span><span class="g-caret"></span></div>
+      </div>
+    </div>
+    <div class="glass small">
+      <div class="g-op"><b>Go to folder</b> ⌘J <span style="color:var(--faint)">orb</span>
+        <div style="margin-top:6px;color:var(--text)">~/projects/orbit</div>
+        <div>~/work/orbit-ground</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap hero-center">
+    <p class="eyebrow">yet another file manager — rust · egui</p>
+    <h1>Two panels.<br>A real terminal.<br><span class="green">Rust-fast.</span></h1>
+    <p class="lede">A keyboard-first, dual-panel file manager in the spirit of Midnight Commander, written in Rust. Your shell is one key away, in splits; folders open as lists or thumbnails; servers and cloud drives sit in a panel like any disk. It previews almost anything, knows your git status, can be see-through — and nothing it does to your files can't be undone or isn't asked first.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="https://github.com">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download
+        </a>
+        <a class="btn btn-ghost" href="https://github.com">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          Read the source
+        </a>
+      </div>
+      <p class="platforms">
+        <span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.5 2-3.7 2.1-3.8-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 3-.4 7.4 1.2 9.8.8 1.2 1.8 2.5 3.1 2.4 1.2-.1 1.7-.8 3.2-.8s1.9.8 3.2.8c1.3 0 2.2-1.2 3-2.4.9-1.4 1.3-2.7 1.3-2.8-.1 0-2.6-1-2.7-3.8zM13.9 5.3c.7-.8 1.1-1.9 1-3-1 0-2.1.6-2.8 1.4-.6.7-1.2 1.9-1 3 1 .1 2.1-.6 2.8-1.4z"/></svg>macOS</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><line x1="8" y1="20" x2="16" y2="20"/><line x1="12" y1="16" x2="12" y2="20"/></svg>Linux</span>
+        <span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.1L10.5 4v7.5H3V5.1zM11.5 3.9L21 3v8.5h-9.5V3.9zM3 13h7.5v7.5L3 19.5V13zm9.5 0H21v7.5l-8.5-.9V13z"/></svg>Windows</span>
+        <span>MIT licensed</span>
+        <span>Release 0.91.5</span>
+      </p>
+  </div>
+
+  <div class="wrap hero-shot">
+    <a href="img/see-through-desktop.webp"><img src="img/see-through-desktop.webp" width="2560" height="1560" alt="yafim with see-through panels over a colourful desktop: the left panel lists a project with git status marks, the right panel shows a rendered README in the quick view. The desktop shows through, blurred; text and bars stay crisp."></a>
+    <p class="caption">Panels opacity at 60%, blurred behind — the desktop shows through, the text stays solid.</p>
+  </div>
+</section>
+
+<!-- ── What's new ───────────────────────────────────────── -->
+<section class="showcase" id="new">
+  <div class="wrap">
+    <p class="kicker">// what's new</p>
+    <h2>The newest. The ones that change your day.</h2>
+    <p class="sub">The biggest additions since the first release, newest and most significant first; the rest live in the CHANGELOG. Every picture is the real app, rendered by its test suite.</p>
+
+    <div class="show-row">
+      <figure><a href="img/thumbnails.webp"><img src="img/thumbnails.webp" width="2048" height="1248" loading="lazy" alt="The left panel showing a folder of twelve night-sky photos as thumbnail cards, two marked with a check, the cursor's card outlined in green; the right panel lists a downloads folder; the path bars end with the list, thumbnails, gallery and wide buttons."></a></figure>
+      <div>
+        <h3>Thumbnails and a wide panel</h3>
+        <p>A panel shows its folder as a list or as cards with pictures — photos, and on a Mac videos, PDFs and documents too — while the other panel stays a list to file them into. Every panel key works on the cards. A wide panel takes the whole window when you want more on screen.</p>
+        <ul><li>Five card sizes, from 48 to 176 points; 64 at first, as Finder's icons</li><li>Pictures made in the background, nearest the cursor first; the gallery's strip shares them</li><li>Buttons at the end of every path bar switch list, thumbnails, gallery and wide</li></ul>
+        <p class="keys"><kbd>⌘⌥2</kbd> thumbnails <kbd>⌘⌥1</kbd> list <kbd>⌘G</kbd> gallery <kbd>⌘⌥E</kbd> wide</p>
+      </div>
+    </div>
+
+    <div class="show-row flip">
+      <figure><a href="img/gallery-any.webp"><img src="img/gallery-any.webp" width="2048" height="1248" loading="lazy" alt="The gallery in a folder of night-sky photos, showing a short film among them: its frame large, the player with play, the time bar and volume, and its length, size and format; the header with the All and Pictures filter; the strip of the photos along the bottom with the film framed among them."></a></figure>
+      <div>
+        <h3>A gallery of any folder</h3>
+        <p>The gallery opens anywhere and shows every item large, one at a time: photos zoomable as before, and everything else as the quick view draws it — Markdown rendered, code coloured, PDF pages, tables, data trees, video and audio that play, a folder's contents. Walk through a folder of documents the way you walk through photos.</p>
+        <ul><li>All or Pictures in the header; on a picture it starts with pictures only</li><li>Enter goes into a folder and ⌘↑ comes back out, without leaving the gallery</li><li>The slideshow plays pictures and videos, each video to its end; full screen, a video's controls hide while it plays and the arrows seek</li><li>Del sends an item to the Trash, ⌘Z brings it back</li></ul>
+        <p class="keys"><kbd>⌘G</kbd> gallery <kbd>a</kbd> All / Pictures <kbd>F</kbd> full screen <kbd>P</kbd> slideshow</p>
+      </div>
+    </div>
+
+    <div class="show-row">
+      <figure><a href="img/appearance.webp"><img src="img/appearance.webp" width="2048" height="1248" loading="lazy" alt="The Appearance dialog: the System, Light and Dark switch, a row of theme cards with Mint chosen, the Panels and Terminal opacity sliders at 85%, Blur strength at 50% and the look settings below."></a></figure>
+      <div>
+        <h3>A see-through window, frosted by the system</h3>
+        <p>Turn the panels, the viewer and the editor see-through, and the terminal on its own setting, from 20% to solid. What is behind the window shows through, blurred; text, the cursor bar and dialogs stay crisp. It all lives in one Appearance dialog, and yafim starts this way: dark Mint, 85%, blurred at 50%.</p>
+        <ul><li>Options › Appearance: theme cards, System / Light / Dark, Panels opacity and Terminal opacity</li><li>Blur strength: a slider, from none to strong — the window server's blur on macOS, Acrylic on Windows</li><li>The title, menu and function-key bars follow, so the window reads as one sheet</li></ul>
+        <p class="keys">Options › Appearance… <kbd>←</kbd><kbd>→</kbd> by 5%</p>
+      </div>
+    </div>
+
+    <div class="show-row flip">
+      <figure><a href="img/palette.webp"><img src="img/palette.webp" width="2048" height="1248" loading="lazy" alt="The command palette opened over the panels, on its File tab: New window, Close window, Cut, Copy, Paste, Move here, Multi-rename, Duplicate and more, each with its key."></a></figure>
+      <div>
+        <h3>F9 is the command palette</h3>
+        <p>Every command in one searchable list, in tabs that mirror the menus — plus Recent and Settings. Type a few letters to run anything, or walk the tabs with ← → to discover what yafim can do.</p>
+        <ul><li>Recent commands first, remembered between launches</li><li>Settings rows right in the results</li><li>The key for each command shown beside it</li></ul>
+        <p class="keys"><kbd>F9</kbd> palette <kbd>⌘⇧O</kbd> too <kbd>←</kbd><kbd>→</kbd> tabs</p>
+      </div>
+    </div>
+
+    <div class="show-row">
+      <figure><a href="img/data-preview.webp"><img src="img/data-preview.webp" width="2048" height="1248" loading="lazy" alt="The quick view showing metrics.csv as a table: 10 rows by 6 columns of satellite telemetry, beside the panel listing the data folder."></a></figure>
+      <div>
+        <h3>A quick view that reads almost anything</h3>
+        <p>Ctrl+Q turns the other panel into a live preview of the cursor item, and it now understands far more than text.</p>
+        <ul><li>CSV and TSV as tables; JSON, YAML and TOML as text or a folding tree (t)</li><li>Markdown rendered; a folder's contents and size</li><li>Photo details with the place on a map, audio tags and covers, video frames</li></ul>
+        <p class="keys"><kbd>Ctrl+Q</kbd> quick view <kbd>t</kbd> table / tree / text</p>
+      </div>
+    </div>
+
+    <div class="show-row flip">
+      <figure><a href="img/terminal-splits.webp"><img src="img/terminal-splits.webp" width="2048" height="1248" loading="lazy" alt="The built-in terminal split in three panes: git log on the left, git status and an ls listing on the right."></a></figure>
+      <div>
+        <h3>A real terminal, in splits</h3>
+        <p>⌘O swaps the panels for your shell, which keeps running while hidden. Split it right and down, follow the panel's folder, and ⌘-click any path or URL the tools print.</p>
+        <ul><li>Splits with their own shells; resize with the dividers; right-click a pane for its menu</li><li>Quick folders (⌘S) and Switch drive (⌘⇧S) take the shell there — a server folder opens ssh</li><li>Paths like src/main.rs:42 open in the editor at that line</li><li>Kept with windows and saved layouts</li></ul>
+        <p class="keys"><kbd>⌘O</kbd> terminal <kbd>⌘D</kbd> split right <kbd>⌘⇧D</kbd> down — in the terminal</p>
+      </div>
+    </div>
+
+    <div class="show-row">
+      <figure><a href="img/panels-quick-view.webp"><img src="img/panels-quick-view.webp" width="2048" height="1248" loading="lazy" alt="The panels with a Git column: changed folders marked with dots, the branch name main in the path bar, and README.md rendered in the quick view on the right."></a></figure>
+      <div>
+        <h3>Git-aware panels and tabs</h3>
+        <p>Turn on the Git column and every row shows whether it is modified, staged, new or ignored, with the branch and how far it is from upstream in the path bar. Stage, commit, pull and push without leaving the panels. Tabs keep several folders in each panel.</p>
+        <ul><li>Tools › Git: stage (⌘⌥A), commit with recent messages (⌘⌥C), pull, push, fetch; remotes and worktrees</li><li>Resolve merge conflicts three-way: Local, Result, Remote (⌘⇧M)</li><li>Tabs per panel, locked tabs, middle-click to open</li><li>A folder tree (⌘⇧K) and Go to folder: a few letters find the folders you use (⌘J)</li></ul>
+        <p class="keys"><kbd>⌘T</kbd> new tab <kbd>⌘J</kbd> go to folder <kbd>⌘⇧M</kbd> resolve</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── Features ─────────────────────────────────────────── -->
+<section class="features" id="features">
+  <div class="wrap">
+    <p class="kicker">// features</p>
+    <h2>And everything the classic workflow needs.</h2>
+    <p class="sub">Every feature is written down first, with what it must do, and built on a tested core that knows nothing of the window. Beyond the highlights above, here is what that means in daily use.</p>
+    <div class="fgrid">
+      <span class="cluster"><i>//</i> the two panels</span>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/></svg></span>
+        <h3>Dual-panel browsing</h3>
+        <p>Two independent panels with resizable split, type-ahead jump, marking with running count and size, sort and hidden-file toggle. Sync browsing walks two similar trees together. 100k-entry directories stay smooth — only visible rows are laid out.</p>
+        <p class="keys"><kbd>↑↓</kbd><kbd>→</kbd><kbd>Tab</kbd><kbd>Insert</kbd> mark <kbd>⌘⌥S</kbd> sync browsing</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.8H20l-4.9 3.6 1.9 5.8-5-3.6-5 3.6 1.9-5.8L4 8.8h6.1z"/></svg></span>
+        <h3>File ops that never lose data</h3>
+        <p>F5 copy, F6 move/rename, F7 mkdir, F8 to the OS trash — permanent delete is a separate, always-confirmed action. Conflicts ask (overwrite / skip / rename / all). Long ops run with a cancellable progress dialog.</p>
+        <p class="keys"><kbd>F5</kbd><kbd>F6</kbd><kbd>F7</kbd><kbd>F8</kbd><kbd>⇧F8</kbd> permanent</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span>
+        <h3>Del is quick trash</h3>
+        <p>One key, zero ceremony: Del moves the cursor or marked items straight to the OS trash — no confirmation dialog, because it is always recoverable. The status line tells you what went where. Permanent deletion still demands its own explicit confirmation, every time.</p>
+        <p class="keys"><kbd>Del</kbd> trash now <kbd>F8</kbd> trash (ask) <kbd>⇧F8</kbd> permanent (ask)</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.5 15a9 9 0 1 0 2.1-9.4L1 10"/></svg></span>
+        <h3>Undo</h3>
+        <p>Moves, renames and moves to the Trash go back, through the last twenty — the safety net that makes fast keyboard work relaxed.</p>
+        <p class="keys"><kbd>⌘Z</kbd> undo</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg></span>
+        <h3>Folder sizes on demand</h3>
+        <p>One key puts real sizes in place of &lt;DIR&gt; for the marked folders, or every folder in the panel. Counted in the background, growing as you watch; sort by size and the marked total use them.</p>
+        <p class="keys"><kbd>⌥Space</kbd> count <kbd>⌥⇧Space</kbd> all folders</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/><line x1="7" y1="7" x2="13" y2="7"/><line x1="7" y1="17" x2="10" y2="17"/></svg></span>
+        <h3>Operations side by side</h3>
+        <p>Copies and moves can run in the background while you keep working, several at once, with a live indicator on the function-key bar. Pause them, reorder the waiting ones, and resume a copy that broke off — only the rest is copied. The operations log keeps what ran, what failed and why.</p>
+        <p class="keys">progress › Background <kbd>⌘⇧L</kbd> log</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+        <h3>Instant copies on APFS</h3>
+        <p>On a Mac, a copy within the same APFS disk is a clone: done at once whatever the size, and no extra space until one of the two changes. Everything else keeps the cancellable copy with progress.</p>
+        <p class="keys"><kbd>F5</kbd> same disk: instant</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11V5a2 2 0 0 1 4 0v6"/><path d="M13 10.5V9a2 2 0 0 1 4 0v4a7 7 0 0 1-7 7h-.5a7 7 0 0 1-5.6-2.8L2.5 15a2 2 0 0 1 3-2.6L9 15"/></svg></span>
+        <h3>Drag and drop, both ways</h3>
+        <p>Drag between the panels or onto a folder row; drop files in from Finder; drag them out to Finder, Mail or a browser. Same disk moves and another disk copies, as in Finder (⌥ copies, ⌘ moves). Inside yafim the usual dialog confirms first.</p>
+        <p class="keys"><kbd>drag</kbd> copy / move <kbd>⌥</kbd> copy <kbd>⌘</kbd> move</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+        <h3>Permissions and links</h3>
+        <p>A Get Info–style dialog: read / write / execute for owner, group and others, octal, owner and group — across many files at once, changing only what you touch. Symlinks into the other panel, relative by default, never overwriting.</p>
+        <p class="keys"><kbd>⌘I</kbd> permissions <kbd>⌘L</kbd> symlink</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v10"/><polyline points="8 7 12 3 16 7"/><path d="M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/><line x1="4" y1="14" x2="20" y2="14"/></svg></span>
+        <h3>Eject a drive properly</h3>
+        <p>⏏ in Switch drive, or ⌘E, ejects USB sticks, cards, disk images and network shares the system's way — flush and unmount, not just leave. Panels and tabs on the drive move to your home folder first; a terminal or copy still using it keeps it, and says why.</p>
+        <p class="keys"><kbd>⌘⇧S</kbd> switch drive <kbd>⌘E</kbd> eject</p>
+      </div>
+      <span class="cluster"><i>//</i> getting there</span>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+        <h3>Nine quick folders</h3>
+        <p>Save your usual places to numbered slots and jump to any of them with one chord — no dialog, no dropdown. The slot list reorders, renames and tidies with the keys you already know.</p>
+        <p class="keys"><kbd>Ctrl+1</kbd>…<kbd>Ctrl+9</kbd> jump <kbd>Ctrl+⇧1</kbd> save <kbd>⌘S</kbd> list</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+        <h3>Go to file, type to filter</h3>
+        <p>A fuzzy finder over everything below the panel's folder (thv finds theme_view.rs), Go to folder with completion, and letters that filter the panel as you type.</p>
+        <p class="keys"><kbd>⌘P</kbd> go to file <kbd>⌘⇧G</kbd> go to folder</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.5 15a9 9 0 1 0 2.1-9.4L1 10"/></svg></span>
+        <h3>Folder history</h3>
+        <p>Each panel remembers where it has been: back and forward like a browser (the mouse buttons too), and a filterable list of recent folders that survives a restart.</p>
+        <p class="keys"><kbd>⌘[</kbd> back <kbd>⌘]</kbd> forward <kbd>⌘Y</kbd> list</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="9" x2="9" y2="20"/></svg></span>
+        <h3>Views per folder, layouts saved</h3>
+        <p>Each folder remembers its sort and columns. Windows come back where they were, terminal included, and named layouts restore a whole setup in one go.</p>
+        <p class="keys">Window menu</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="14" height="11" rx="1.5"/><rect x="8" y="10" width="14" height="11" rx="1.5"/></svg></span>
+        <h3>Several windows, or tabs of one</h3>
+        <p>Open another yafim window in the same folders and work in each on its own — or merge them into tabs of one window, each still running everything it ran, all in one yafim with one Dock icon. ⌘Q quits them all, asking first if anything is still running — or not at all, if you prefer.</p>
+        <p class="keys"><kbd>⌘N</kbd> new <kbd>⌘`</kbd> switch Window › Merge all windows</p>
+      </div>
+      <span class="cluster"><i>//</i> looking at files</span>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <h3>Instant viewer, any size</h3>
+        <p>F3 opens the first screen of a multi-gigabyte file in under 100 ms — only the visible part is read, off the UI thread. Text or hex, forward and backward search, go to line or byte offset.</p>
+        <p class="keys"><kbd>F3</kbd> view <kbd>F4</kbd> hex <kbd>F7</kbd> search</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>
+        <h3>Pictures and PDFs in the viewer</h3>
+        <p>F3 on a photo, an SVG or a PDF shows it across the window, fitted. Zoom with + and − or ⌘-scroll, drag to move around, turn PDF pages, and Space / Backspace step to the next or previous picture in the folder. H shows the bytes.</p>
+        <p class="keys"><kbd>F3</kbd> view <kbd>+</kbd><kbd>−</kbd> zoom <kbd>Space</kbd> next</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/><path d="M19 3l2 2-2 2"/></svg></span>
+        <h3>Quick Look, Mac-native</h3>
+        <p>Space opens the real macOS Quick Look panel — the same one as in Finder — floating in front of yafim while the keyboard stays with the app. Arrow keys move the cursor and the preview switches in place, item after item, without closing. Escape or Space again puts it away.</p>
+        <p class="keys"><kbd>Space</kbd> preview <kbd>↑↓←→</kbd> walk the folder</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8v13H3V8"/><rect x="1" y="3" width="22" height="5" rx="1"/><line x1="10" y1="12" x2="14" y2="12"/></svg></span>
+        <h3>Archives as folders</h3>
+        <p>Enter on a zip, a tarball (gz, bz2, xz, zst), 7z, RAR, ISO or a package and browse it like any folder: view files, find inside, F5 to copy out — even on a server. Compress to zip, tar.gz or 7z with an optional password; extract anywhere.</p>
+        <p class="keys"><kbd>Enter</kbd> go in <kbd>⌘↓</kbd> open with its app</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></svg></span>
+        <h3>Right-click when you want it</h3>
+        <p>A context menu for the file, the marked items or the folder itself, every entry showing its key so the mouse teaches you the keyboard. Copy path, reveal in Finder, open a terminal there.</p>
+        <p class="keys"><kbd>right-click</kbd> <kbd>⇧F10</kbd> at the cursor</p>
+      </div>
+      <span class="cluster"><i>//</i> changing files</span>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span>
+        <h3>Built-in text editor</h3>
+        <p>F4 edits text files up to 20 MB in place: selection, clipboard, undo/redo, find and replace, line numbers. Saves are atomic — no half-written files, and it warns if the file changed under you. Markdown opens with its rendered preview beside it, following every keystroke and scrolling with you.</p>
+        <p class="keys"><kbd>F4</kbd> edit <kbd>⌘U</kbd> swap preview <kbd>⌘⇧4</kbd> your $EDITOR</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M4 12h10"/><path d="M4 17h6"/><polyline points="16 14 19 17 16 20"/></svg></span>
+        <h3>Multi-rename</h3>
+        <p>Rename many files at once with masks for name, extension, counter and dates, search and replace (regex too) and case changes. A live preview flags clashes before anything moves, and Undo puts every name back.</p>
+        <p class="keys"><kbd>Ctrl+M</kbd> rename the marked items</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8v13H3V8"/><rect x="1" y="3" width="22" height="5" rx="1"/><polyline points="9 13 12 16 15 13"/><line x1="12" y1="10" x2="12" y2="16"/></svg></span>
+        <h3>Compress and extract</h3>
+        <p>Pack the marked items into zip or tar (gz, bz2, xz, zst) with progress and Cancel — Fast zip by default — and extract any of them. Zips can be password-protected (AES), changed in place, and opened right on a server.</p>
+        <p class="keys"><kbd>⌥F5</kbd> / <kbd>⌘⇧P</kbd> pack <kbd>⌘⇧E</kbd> extract</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="12" x2="12" y2="18"/><line x1="9" y1="15" x2="15" y2="15"/></svg></span>
+        <h3>New files from templates</h3>
+        <p>Make a file where the panel is: empty, or a copy of one of your templates, shown as cards with the ones you use most first. Keep templates in yafim's own folder or any folder you choose; on Linux the desktop's ~/Templates just works.</p>
+        <p class="keys"><kbd>⇧F4</kbd> new file <kbd>⌘Enter</kbd> and edit it</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>
+        <h3>Tags, dates and attributes</h3>
+        <p>Coloured tags after a file's name — Finder's own on a Mac, Dolphin's on Linux — set on the marked items, marked by, and searched for. Change modified and created dates, and see or remove extended attributes, the quarantine flag among them.</p>
+        <p class="keys"><kbd>⌘⌥T</kbd> tags <kbd>⌘I</kbd> dates and attributes</p>
+      </div>
+      <span class="cluster"><i>//</i> find, compare, verify</span>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+        <h3>Find by name and content</h3>
+        <p>Search a whole tree by wildcard or regex, optionally by text inside the files — a regex too, in the encoding you pick — and narrow by size, date and kind. Results stream in while you work, one bad folder doesn't stop the run, and results can be panelized so F5/F6/F8 act on them all.</p>
+        <p class="keys"><kbd>⌘F</kbd> find <kbd>⇧F7</kbd> find <kbd>⌘P</kbd> panelize in results</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><path d="M8 11h6"/></svg></span>
+        <h3>Replace in files</h3>
+        <p>Find text or a regex across a folder tree and see every hit, in colour, with the old text struck through and the new beside it. Untick what to leave, replace as one safe operation, and undo it later if you change your mind.</p>
+        <p class="keys"><kbd>⌘⌥F</kbd> replace in files</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="18" rx="1"/><line x1="10" y1="9" x2="14" y2="9"/><line x1="10" y1="15" x2="14" y2="15"/></svg></span>
+        <h3>Compare folders</h3>
+        <p>Each panel marks what the other side lacks or has an older version of — ready for F5 to sync. Quick by size and time, Size only, or Thorough: same-size files are read and compared in the background, with Cancel.</p>
+        <p class="keys"><kbd>⇧F2</kbd> / <kbd>⌘⇧C</kbd> compare <kbd>F5</kbd> sync</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span>
+        <h3>Synchronize and compare files</h3>
+        <p>Sync two folders, subfolders too, both ways or as a mirror: every change is listed and adjustable first, then runs as one operation. Compare two files side by side, step through the differences, copy them across and save.</p>
+        <p class="keys"><kbd>⌘⇧B</kbd> sync <kbd>⌥F3</kbd> compare files</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12l2 2 4-4"/><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg></span>
+        <h3>Checksums and verify after copy</h3>
+        <p>SHA-256, SHA-1, MD5 and BLAKE3 for the marked files: copy them, save a .sha256 file, or verify one. Turn on Verify after copying and every copy is read back and compared before it counts as done.</p>
+        <p class="keys">Tools › Checksum…</p>
+      </div>
+      <span class="cluster"><i>//</i> servers and your own setup</span>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="7" rx="1.5"/><rect x="2" y="14" width="20" height="7" rx="1.5"/><line x1="6" y1="6.5" x2="6.01" y2="6.5"/><line x1="6" y1="17.5" x2="6.01" y2="17.5"/></svg></span>
+        <h3>Servers and cloud drives</h3>
+        <p>One panel on a server, the other on your machine, and everything works across: view, edit, copy and move both ways, permissions, find, archives. yafim runs your own <code>ssh</code>, so <code>~/.ssh/config</code>, keys, the agent and ProxyJump just work. FTP and FTPS servers, network shares, WebDAV, S3 buckets and every cloud drive rclone knows — Google Drive, OneDrive, Dropbox and more — open the same way, with share links one click away. Save a server with its password in the system's keychain, and edit a server file in your own editor — each save goes back up.</p>
+        <p class="keys"><kbd>⌘K</kbd> connect <kbd>⌥⇧F4</kbd> edit in your editor</p>
+      </div>
+      <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="10" x2="6.01" y2="10"/><line x1="10" y1="10" x2="10.01" y2="10"/><line x1="14" y1="10" x2="14.01" y2="10"/><line x1="18" y1="10" x2="18.01" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/></svg></span>
+        <h3>Your own keys</h3>
+        <p>Give any command in the panels, the viewer or the editor the keys you like: press them in a VS Code-style box, see conflicts at once, reset anytime. Saved to a plain keys.toml you can edit by hand or keep in your dotfiles.</p>
+        <p class="keys">Options › Key bindings…</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Keys & principles ────────────────────────────────── -->
+<section class="keys-sec" id="keys">
+  <div class="wrap">
+    <p class="kicker">// the interface</p>
+    <h2>Learnable in an afternoon, invisible after a week.</h2>
+    <p class="sub">F1 opens a complete, always-current key reference inside the app — but the whole workflow fits on one screen.</p>
+    <div class="keygrid">
+      <div class="keytable" role="table" aria-label="Primary keyboard shortcuts">
+        <div class="keyrow" role="row"><span class="desc" role="cell">Help — keys &amp; topics</span><kbd role="cell">F1</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">View file (text / hex / picture)</span><kbd role="cell">F3</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Edit in built-in editor</span><kbd role="cell">F4</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Copy to other panel</span><kbd role="cell">F5</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Move / rename</span><kbd role="cell">F6</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Make directory</span><kbd role="cell">F7</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Move to trash</span><kbd role="cell">F8</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Quick trash — no dialog, always recoverable</span><kbd role="cell">Del</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Quick Look preview (macOS), arrows walk it</span><kbd role="cell">Space</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Find files by name / content</span><kbd role="cell">⌘F</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Quick folders 1–9 / the list</span><kbd role="cell">Ctrl+1…9 · ⌘S</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Switch drive</span><kbd role="cell">⌘⇧S</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Connect to a server over SSH</span><kbd role="cell">⌘K</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Count size</span><kbd role="cell">⌥Space</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Back / forward / folder history</span><kbd role="cell">⌘← · ⌘→ · ⌘Y</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Select files (again: unselect)</span><kbd role="cell">⌘A</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Compare folders</span><kbd role="cell">⇧F2</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Terminal</span><kbd role="cell">⌘O</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Quick view in the other panel</span><kbd role="cell">Ctrl+Q</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Disk usage and cleanup</span><kbd role="cell">⌘⇧U</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Replace in files</span><kbd role="cell">⌘⌥F</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">New window</span><kbd role="cell">⌘N</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Command palette — every command, in tabs</span><kbd role="cell">F9</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Go to folder / go to file</span><kbd role="cell">⌘J · ⌘P</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">New tab / folder tree</span><kbd role="cell">⌘T · ⌘⇧K</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Undo a move, rename or trash</span><kbd role="cell">⌘Z</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">List / thumbnails / gallery of any folder</span><kbd role="cell">⌘⌥1 · ⌘⌥2 · ⌘G</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Appearance — theme, opacity, blur</span><kbd role="cell">Options › Appearance…</kbd></div>
+      </div>
+      <ul class="principles" aria-label="Design principles">
+        <li><span class="num">01</span><div><b>Keyboard first, mouse friendly.</b><span>Every action has a key and a discoverable mouse path. Nothing is hidden behind a menu the keyboard can't reach.</span></div></li>
+        <li><span class="num">02</span><div><b>Never lose user data.</b><span>Trash by default, confirmation for permanent delete, conflicts always ask. Copy verifies before the source is removed.</span></div></li>
+        <li><span class="num">03</span><div><b>The UI never blocks.</b><span>Filesystem work runs off the UI thread with live progress and a cancel button. The cursor never freezes, even on slow disks.</span></div></li>
+        <li><span class="num">04</span><div><b>Cross-platform parity.</b><span>macOS, Linux and Windows are first-class, each with idiomatic bindings — ⌘-keys on the Mac, F-keys everywhere else.</span></div></li>
+        <li><span class="num">05</span><div><b>Simple over clever.</b><span>A small Rust core with no UI dependency, covered by tests — and no <code>unsafe</code> outside one documented native crate.</span></div></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ── The name ─────────────────────────────────────────── -->
+<section class="name-sec" id="name">
+  <div class="wrap">
+    <p class="kicker">// the name</p>
+    <h2>Yet Another File Manager.</h2>
+    <p class="sub">yafim says what it is with a wink. Two-panel file managers have a long line — Norton Commander, Midnight Commander, Far, Total Commander, Double Commander — and Unix has a habit of naming its tools “yet another” (yacc, YAML). yafim doesn't pretend to be the first. It takes their keyboard-first ideas — F-keys, two panels, the other side as the target — and gives them a modern home: a native window, a real terminal, thumbnails, servers and cloud drives, written in Rust. Say it <i>ya-FIM</i>, the stress on the second part.</p>
+  </div>
+</section>
+
+<!-- ── CTA ──────────────────────────────────────────────── -->
+<section class="cta" id="download">
+  <div class="wrap">
+    <p class="kicker">// get it</p>
+    <h2>Your files are already there.<br>Just change how you reach them.</h2>
+    <p class="cmd"><span class="p">$</span>cargo run</p>
+    <div class="cta-ctas">
+      <a class="btn btn-primary" href="https://github.com">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download for macOS / Linux / Windows
+      </a>
+      <a class="btn btn-ghost" href="https://github.com">Read the source on GitHub</a>
+    </div>
+    <p class="trust"><b>Release 0.91.5</b> · MIT · Rust, no telemetry, no installer
+      — the macOS DMG is signed ad hoc, so the first launch wants right-click › Open;
+      the Windows zip asks SmartScreen once (More info › Run anyway);
+      on any platform <code>cargo run</code> builds and runs it from the source you can read.</p>
+  </div>
+</section>
+</main>
+
+<!-- ── Footer ───────────────────────────────────────────── -->
+<footer>
+  <div class="wrap foot">
+    <span>yafim — Yet Another File Manager · MIT · Rust + egui</span>
+    <nav class="flinks" aria-label="Footer">
+      <a href="#features">features</a>
+      <a href="#keys">keys</a>
+      <a href="https://github.com">github</a>
+      <a href="#top">top ↑</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+  /* Light up the section you are reading in the sticky nav.
+     With JavaScript off the nav simply stays static — nothing else changes. */
+  (function () {
+    var links = {};
+    document.querySelectorAll('.nav-links a.act[href^="#"]').forEach(function (a) {
+      links[a.getAttribute('href').slice(1)] = a;
+    });
+    var current = null;
+    function set(id) {
+      if (current === id) return;
+      if (current) links[current].removeAttribute('aria-current');
+      current = id;
+      if (id) links[id].setAttribute('aria-current', 'true');
+    }
+    var visible = {};
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { visible[e.target.id] = e.isIntersecting; });
+      var hit = null;
+      for (var id in links) { if (visible[id]) { hit = id; break; } }
+      set(hit);
+    }, { rootMargin: '-76px 0px -55% 0px' });
+    for (var id in links) {
+      var section = document.getElementById(id);
+      if (section) io.observe(section);
+    }
+  })();
+</script>
+
+</body>
+</html>
