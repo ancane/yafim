@@ -534,9 +534,19 @@
   <div class="wrap">
     <p class="kicker">// features</p>
     <h2>The newest. The ones that change your day.</h2>
-    <p class="sub">The biggest additions since the first release, newest and most significant first; the rest live in the CHANGELOG. Every picture is the real app, rendered by its test suite.</p>
+    <p class="sub">The biggest additions since the first release, newest and most significant first; the rest are in each release’s notes. Every picture is the real app, rendered by its test suite.</p>
 
     <div class="show-row">
+      <figure><a href="img/theme-per-window.webp"><img src="img/theme-per-window.webp" width="2048" height="1248" loading="lazy" alt="A yafim window painted in Catppuccin Mocha with the Appearance dialog open on This window: the Every window / This window switch beside System, Light and Dark, the theme filter showing 222 themes, the theme cards with Catppuccin Mocha chosen, and this window's own opacity and blur sliders."></a></figure>
+      <div>
+        <h3>222 themes, and one for each window</h3>
+        <p>Appearance holds the whole base24 catalogue — Catppuccin, Dracula, Gruvbox, Nord, Tokyo Night and some two hundred more — plus yafim's own Mint, Amber and Graphite, each shown as a small picture of the panels it paints. Give one window a theme of its own and tell your windows apart at a glance: the server one, the project one, in Mission Control and side by side.</p>
+        <ul><li>Type a word to narrow the cards; System / Light / Dark shows the themes of that look</li><li>Window › Theme for this window…: its own theme, look, opacity and blur, kept with its tabs, layouts and restarts</li><li>A pick on Every window reaches every window — it asks first when one has a theme of its own</li></ul>
+        <p class="keys"><kbd>⌘'</kbd> Appearance · Window › Theme for this window…</p>
+      </div>
+    </div>
+
+    <div class="show-row flip">
       <figure><a href="img/thumbnails.webp"><img src="img/thumbnails.webp" width="2048" height="1248" loading="lazy" alt="The left panel showing a folder of twelve night-sky photos as thumbnail cards, two marked with a check, the cursor's card outlined in green; the right panel lists a downloads folder; the path bars end with the list, thumbnails, gallery and wide buttons."></a></figure>
       <div>
         <h3>Thumbnails and a wide panel</h3>
@@ -546,7 +556,7 @@
       </div>
     </div>
 
-    <div class="show-row flip">
+    <div class="show-row">
       <figure><a href="img/gallery-any.webp"><img src="img/gallery-any.webp" width="2048" height="1248" loading="lazy" alt="The gallery in a folder of night-sky photos, showing a short film among them: its frame large, the player with play, the time bar and volume, and its length, size and format; the header with the All and Pictures filter; the strip of the photos along the bottom with the film framed among them."></a></figure>
       <div>
         <h3>A gallery of any folder</h3>
@@ -556,8 +566,8 @@
       </div>
     </div>
 
-    <div class="show-row">
-      <figure><a href="img/appearance.webp"><img src="img/appearance.webp" width="2048" height="1248" loading="lazy" alt="The Appearance dialog: the System, Light and Dark switch, a row of theme cards with Mint chosen, the Panels and Terminal opacity sliders at 85%, Blur strength at 50% and the look settings below."></a></figure>
+    <div class="show-row flip">
+      <figure><a href="img/appearance.webp"><img src="img/appearance.webp" width="2048" height="1248" loading="lazy" alt="The Appearance dialog on Every window: the System, Light and Dark switch, the theme filter with 222 themes, a row of theme cards with Mint chosen, the Panels and Terminal opacity sliders at 85%, Blur strength at 50% and the look settings below."></a></figure>
       <div>
         <h3>A see-through window, frosted by the system</h3>
         <p>Turn the panels, the viewer and the editor see-through, and the terminal on its own setting, from 20% to solid. What is behind the window shows through, blurred; text, the cursor bar and dialogs stay crisp. It all lives in one Appearance dialog, and yafim starts this way: dark Mint, 85%, blurred at 50%.</p>
@@ -566,7 +576,7 @@
       </div>
     </div>
 
-    <div class="show-row flip">
+    <div class="show-row">
       <figure><a href="img/palette.webp"><img src="img/palette.webp" width="2048" height="1248" loading="lazy" alt="The command palette opened over the panels, on its File tab: New window, Close window, Cut, Copy, Paste, Move here, Multi-rename, Duplicate and more, each with its key."></a></figure>
       <div>
         <h3>F9 is the command palette</h3>
@@ -576,7 +586,7 @@
       </div>
     </div>
 
-    <div class="show-row">
+    <div class="show-row flip">
       <figure><a href="img/data-preview.webp"><img src="img/data-preview.webp" width="2048" height="1248" loading="lazy" alt="The quick view showing metrics.csv as a table: 10 rows by 6 columns of satellite telemetry, beside the panel listing the data folder."></a></figure>
       <div>
         <h3>A quick view that reads almost anything</h3>
@@ -586,17 +596,17 @@
       </div>
     </div>
 
-    <div class="show-row flip">
+    <div class="show-row">
       <figure><a href="img/terminal-splits.webp"><img src="img/terminal-splits.webp" width="2048" height="1248" loading="lazy" alt="The built-in terminal split in three panes: git log on the left, git status and an ls listing on the right."></a></figure>
       <div>
         <h3>A real terminal, in splits</h3>
         <p>⌘O swaps the panels for your shell, which keeps running while hidden. Split it right and down, follow the panel's folder, and ⌘-click any path or URL the tools print.</p>
-        <ul><li>Splits with their own shells; resize with the dividers; right-click a pane for its menu</li><li>Quick folders (⌘S) and Switch drive (⌘⇧S) take the shell there — a server folder opens ssh</li><li>Paths like src/main.rs:42 open in the editor at that line</li><li>Kept with windows and saved layouts</li></ul>
+        <ul><li>Splits with their own shells; resize with the dividers; right-click a pane for its menu</li><li>Quick folders (⌘S) and Switch drive (⌘⇧S) take the shell there — a server folder opens ssh</li><li>Paths like src/main.rs:42 open in the editor at that line — paths with spaces, and paths after an = (file=…, --out=…), too</li><li>Kept with windows and saved layouts</li></ul>
         <p class="keys"><kbd>⌘O</kbd> terminal <kbd>⌘D</kbd> split right <kbd>⌘⇧D</kbd> down — in the terminal</p>
       </div>
     </div>
 
-    <div class="show-row">
+    <div class="show-row flip">
       <figure><a href="img/panels-quick-view.webp"><img src="img/panels-quick-view.webp" width="2048" height="1248" loading="lazy" alt="The panels with a Git column: changed folders marked with dots, the branch name main in the path bar, and README.md rendered in the quick view on the right."></a></figure>
       <div>
         <h3>Git-aware panels and tabs</h3>
