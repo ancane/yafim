@@ -107,10 +107,9 @@
   .nav-links .sm { display: none; }
   /* keep the nav Download button's own colors (nav-link rules above win on specificity) */
   .nav-links a.btn-primary, .nav-links a.btn-primary:hover { color: #062015; }
-  /* Narrow screens: the sticky row shrinks to 56px and keeps the three sections
-     people actually hunt for on a phone, each a 44px chip. "what's new" and the
-     github link drop out: the first is directly below the fold, the footer holds
-     the second. */
+  /* Narrow screens: the sticky row shrinks to 56px and keeps the sections people
+     actually hunt for on a phone, each a 44px chip. The github link drops out: the
+     footer holds it. */
   @media (max-width: 720px) {
     .nav .wrap { padding: 0 16px; }
     .nav-inner { height: 56px; }
@@ -308,6 +307,7 @@
 
   /* ── Features ────────────────────────────────────────── */
   .features { border-top: 1px solid var(--border); }
+  .features .more { margin-top: 72px; padding-top: 56px; border-top: 1px solid var(--border); }
   .fgrid {
     display: grid; grid-template-columns: 1fr; gap: 16px;
   }
@@ -442,10 +442,9 @@
   <div class="wrap nav-inner">
     <a class="brand" href="#top" aria-label="yafim home"><span class="dot" aria-hidden="true"></span>yafim</a>
     <nav class="nav-links" aria-label="Main navigation">
-      <a href="#new" class="act narrow-hide"><span class="lg">what's new</span><span class="sm">new</span></a>
       <a href="#features" class="act">features</a>
       <a href="#keys" class="act">keys</a>
-      <a href="https://github.com" class="act hide-sm" aria-label="yafim on GitHub">github</a>
+      <a href="https://github.com/ancane/yafim" class="act hide-sm" aria-label="yafim on GitHub">github</a>
       <a class="btn btn-primary" href="#download">Download</a>
     </nav>
   </div>
@@ -503,22 +502,10 @@
     <p class="eyebrow">yet another file manager — rust · egui</p>
     <h1>Two panels.<br>A real terminal.<br><span class="green">Rust-fast.</span></h1>
     <p class="lede">A keyboard-first, dual-panel file manager in the spirit of Midnight Commander, written in Rust. Your shell is one key away, in splits; folders open as lists or thumbnails; servers and cloud drives sit in a panel like any disk. It previews almost anything, knows your git status, can be see-through — and nothing it does to your files can't be undone or isn't asked first.</p>
-      <div class="hero-ctas">
-        <a class="btn btn-primary" href="https://github.com">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Download
-        </a>
-        <a class="btn btn-ghost" href="https://github.com">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-          Read the source
-        </a>
-      </div>
       <p class="platforms">
         <span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.5 2-3.7 2.1-3.8-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 3-.4 7.4 1.2 9.8.8 1.2 1.8 2.5 3.1 2.4 1.2-.1 1.7-.8 3.2-.8s1.9.8 3.2.8c1.3 0 2.2-1.2 3-2.4.9-1.4 1.3-2.7 1.3-2.8-.1 0-2.6-1-2.7-3.8zM13.9 5.3c.7-.8 1.1-1.9 1-3-1 0-2.1.6-2.8 1.4-.6.7-1.2 1.9-1 3 1 .1 2.1-.6 2.8-1.4z"/></svg>macOS</span>
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><line x1="8" y1="20" x2="16" y2="20"/><line x1="12" y1="16" x2="12" y2="20"/></svg>Linux</span>
         <span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.1L10.5 4v7.5H3V5.1zM11.5 3.9L21 3v8.5h-9.5V3.9zM3 13h7.5v7.5L3 19.5V13zm9.5 0H21v7.5l-8.5-.9V13z"/></svg>Windows</span>
-        <span>MIT licensed</span>
-        <span>Release 0.91.5</span>
       </p>
   </div>
 
@@ -528,10 +515,10 @@
   </div>
 </section>
 
-<!-- ── What's new ───────────────────────────────────────── -->
-<section class="showcase" id="new">
+<!-- ── Features: the newest first, then the whole set ───── -->
+<section class="features" id="features">
   <div class="wrap">
-    <p class="kicker">// what's new</p>
+    <p class="kicker">// features</p>
     <h2>The newest. The ones that change your day.</h2>
     <p class="sub">The biggest additions since the first release, newest and most significant first; the rest live in the CHANGELOG. Every picture is the real app, rendered by its test suite.</p>
 
@@ -605,14 +592,7 @@
       </div>
     </div>
 
-  </div>
-</section>
-
-<!-- ── Features ─────────────────────────────────────────── -->
-<section class="features" id="features">
-  <div class="wrap">
-    <p class="kicker">// features</p>
-    <h2>And everything the classic workflow needs.</h2>
+    <h2 class="more">And everything the classic workflow needs.</h2>
     <p class="sub">Every feature is written down first, with what it must do, and built on a tested core that knows nothing of the window. Beyond the highlights above, here is what that means in daily use.</p>
     <div class="fgrid">
       <span class="cluster"><i>//</i> the two panels</span>
@@ -869,8 +849,8 @@
 <section class="name-sec" id="name">
   <div class="wrap">
     <p class="kicker">// the name</p>
-    <h2>Yet Another File Manager.</h2>
-    <p class="sub">yafim says what it is with a wink. Two-panel file managers have a long line — Norton Commander, Midnight Commander, Far, Total Commander, Double Commander — and Unix has a habit of naming its tools “yet another” (yacc, YAML). yafim doesn't pretend to be the first. It takes their keyboard-first ideas — F-keys, two panels, the other side as the target — and gives them a modern home: a native window, a real terminal, thumbnails, servers and cloud drives, written in Rust. Say it <i>ya-FIM</i>, the stress on the second part.</p>
+    <h2>Yet Another File Manager — ya-FIM.</h2>
+    <p class="sub">yafim says what it is with a wink. Two-panel file managers have a long line — Norton Commander, Midnight Commander, Far, Total Commander, Double Commander — and Unix has a habit of naming its tools “yet another” (yacc, YAML). yafim doesn't pretend to be the first. It takes their keyboard-first ideas — F-keys, two panels, the other side as the target — and gives them a modern home: a native window, a real terminal, thumbnails, servers and cloud drives, written in Rust.</p>
   </div>
 </section>
 
@@ -879,18 +859,15 @@
   <div class="wrap">
     <p class="kicker">// get it</p>
     <h2>Your files are already there.<br>Just change how you reach them.</h2>
-    <p class="cmd"><span class="p">$</span>cargo run</p>
     <div class="cta-ctas">
-      <a class="btn btn-primary" href="https://github.com">
+      <a class="btn btn-primary" href="https://github.com/ancane/yafim/releases/latest">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Download for macOS / Linux / Windows
       </a>
-      <a class="btn btn-ghost" href="https://github.com">Read the source on GitHub</a>
     </div>
-    <p class="trust"><b>Release 0.91.5</b> · MIT · Rust, no telemetry, no installer
+    <p class="trust">Rust, no telemetry, no installer
       — the macOS DMG is signed ad hoc, so the first launch wants right-click › Open;
-      the Windows zip asks SmartScreen once (More info › Run anyway);
-      on any platform <code>cargo run</code> builds and runs it from the source you can read.</p>
+      the Windows zip asks SmartScreen once (More info › Run anyway).</p>
   </div>
 </section>
 </main>
@@ -898,11 +875,11 @@
 <!-- ── Footer ───────────────────────────────────────────── -->
 <footer>
   <div class="wrap foot">
-    <span>yafim — Yet Another File Manager · MIT · Rust + egui</span>
+    <span>yafim — Yet Another File Manager · Rust + egui</span>
     <nav class="flinks" aria-label="Footer">
       <a href="#features">features</a>
       <a href="#keys">keys</a>
-      <a href="https://github.com">github</a>
+      <a href="https://github.com/ancane/yafim">github</a>
       <a href="#top">top ↑</a>
     </nav>
   </div>
