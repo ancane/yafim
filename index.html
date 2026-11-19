@@ -892,31 +892,38 @@
 </footer>
 
 <script>
-  /* Light up the section you are reading in the sticky nav.
-     With JavaScript off the nav simply stays static — nothing else changes. */
+  /* Light up the section you are reading in the sticky nav: the one the line just under the
+     bar runs through. A link scrolls its section's top to that line (scroll-margin-top), so a
+     click lights its own link at once, whatever is above it. With JavaScript off the nav
+     simply stays static — nothing else changes. */
   (function () {
-    var links = {};
+    var LINE = 76 + 8;
+    var links = [];
     document.querySelectorAll('.nav-links a.act[href^="#"]').forEach(function (a) {
-      links[a.getAttribute('href').slice(1)] = a;
+      var section = document.getElementById(a.getAttribute('href').slice(1));
+      if (section) links.push({ a: a, section: section });
     });
     var current = null;
-    function set(id) {
-      if (current === id) return;
-      if (current) links[current].removeAttribute('aria-current');
-      current = id;
-      if (id) links[id].setAttribute('aria-current', 'true');
-    }
-    var visible = {};
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) { visible[e.target.id] = e.isIntersecting; });
+    function update() {
       var hit = null;
-      for (var id in links) { if (visible[id]) { hit = id; break; } }
-      set(hit);
-    }, { rootMargin: '-76px 0px -55% 0px' });
-    for (var id in links) {
-      var section = document.getElementById(id);
-      if (section) io.observe(section);
+      links.forEach(function (l) {
+        var r = l.section.getBoundingClientRect();
+        if (r.top <= LINE && r.bottom > LINE) hit = l.a;
+      });
+      if (hit === current) return;
+      if (current) current.removeAttribute('aria-current');
+      current = hit;
+      if (hit) hit.setAttribute('aria-current', 'true');
     }
+    var queued = false;
+    function queue() {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(function () { queued = false; update(); });
+    }
+    window.addEventListener('scroll', queue, { passive: true });
+    window.addEventListener('resize', queue);
+    update();
   })();
 </script>
 
