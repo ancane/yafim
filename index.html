@@ -359,6 +359,11 @@
   .keys-sec { border-top: 1px solid var(--border); background: var(--bg-raise); }
   .name-sec { border-top: 1px solid var(--border); }
   .name-sec .sub { margin-bottom: 0; }
+  /* No picture beside it: on a wide window the text takes the width, in two columns so
+     its lines stay a comfortable length. */
+  @media (min-width: 1000px) {
+    .name-sec .sub { max-width: none; columns: 2; column-gap: 56px; }
+  }
   .keygrid {
     display: grid; grid-template-columns: 1fr; gap: 40px;
   }
@@ -399,26 +404,14 @@
   .principles span { color: var(--muted); font-size: 14.5px; }
 
   /* ── Final CTA ───────────────────────────────────────── */
-  .cta { border-top: 1px solid var(--border); text-align: center; }
+  .cta { border-top: 1px solid var(--border); }
   .cta .trust {
     margin-top: 22px;
     font-family: var(--mono); font-size: 12.5px; color: var(--faint);
     max-width: 62ch;
   }
   .cta .trust b { color: var(--muted); font-weight: 600; }
-  .cta .cmd {
-    display: inline-block;
-    font-family: var(--mono); font-size: clamp(16px, 2.6vw, 22px);
-    background: var(--panel);
-    border: 1px solid var(--border-2);
-    border-radius: 10px;
-    padding: 16px 28px;
-    margin: 8px 0 36px;
-    color: var(--text);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-  }
-  .cta .cmd .p { color: var(--accent); margin-right: 10px; user-select: none; }
-  .cta-ctas { display: flex; justify-content: center; flex-wrap: wrap; gap: 14px; }
+  .cta-ctas { display: flex; flex-wrap: wrap; gap: 14px; }
 
   /* ── Footer ──────────────────────────────────────────── */
   footer {
