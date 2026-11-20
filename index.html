@@ -539,22 +539,22 @@
     <p class="sub">The larger features first, then the rest by area. Every picture is the real app, rendered by its test suite.</p>
 
     <div class="show-row">
+      <figure><a href="img/windows.webp"><img src="img/windows.webp" width="2560" height="1720" loading="lazy" alt="Four yafim windows tiled on a green desktop, each set up its own way: the panels in the starting Mint theme with a README in the quick view; a short film in the gallery, made bigger to fill the window, in Tokyo Night; the terminal split in three, in Gruvbox; and a coding agent at work in the terminal, in a light Catppuccin Latte."></a></figure>
+      <div>
+        <h3>As many windows as you like, each its own way</h3>
+        <p>Every window is a whole yafim: its own panels and tabs, its own terminal and splits, its own theme and see-through. Keep the project in one, a film in another, your shells in a third and a coding agent in a fourth, and tell them apart at a glance.</p>
+        <ul><li>A theme, look and opacity per window, kept with its tabs, layouts and restarts</li><li>Tabs in each panel, locked tabs; drag a tab to another window, or merge every window into tabs of one</li><li>One yafim, one Dock icon; windows and their terminals come back where they were</li><li>⌘Q quits them all, asking first if anything is still running</li></ul>
+        <p class="keys"><kbd>⌘N</kbd> new window <kbd>⌘`</kbd> next window <kbd>⌘T</kbd> new tab · Window › Theme for this window…</p>
+      </div>
+    </div>
+
+    <div class="show-row flip">
       <figure><a href="img/terminal-splits.webp"><img src="img/terminal-splits.webp" width="2048" height="1248" loading="lazy" alt="The built-in terminal split in three panes: git log on the left, git status and an ls listing on the right."></a></figure>
       <div>
         <h3>A real terminal, in splits</h3>
         <p>⌘O swaps the panels for your shell, which keeps running while hidden. Split it right and down, follow the panel's folder, and ⌘-click any path or URL the tools print.</p>
         <ul><li>Splits with their own shells; resize with the dividers; right-click a pane for its menu</li><li>Quick folders (⌘S) and Switch drive (⌘⇧S) take the shell there — a server folder opens ssh</li><li>Paths like src/main.rs:42 open in the editor at that line — paths with spaces, and paths after an = (file=…, --out=…), too</li><li>Kept with windows and saved layouts</li></ul>
         <p class="keys"><kbd>⌘O</kbd> terminal <kbd>⌘D</kbd> split right <kbd>⌘⇧D</kbd> down — in the terminal</p>
-      </div>
-    </div>
-
-    <div class="show-row flip">
-      <figure><a href="img/panels-quick-view.webp"><img src="img/panels-quick-view.webp" width="2048" height="1248" loading="lazy" alt="The panels with a Git column: changed folders marked with dots, the branch name main in the path bar, and README.md rendered in the quick view on the right."></a></figure>
-      <div>
-        <h3>Git-aware panels and tabs</h3>
-        <p>Turn on the Git column and every row shows whether it is modified, staged, new or ignored, with the branch and how far it is from upstream in the path bar. Stage, commit, pull and push without leaving the panels. Tabs keep several folders in each panel.</p>
-        <ul><li>Tools › Git: stage (⌘⌥A), commit with recent messages (⌘⌥C), pull, push, fetch; remotes and worktrees</li><li>Resolve merge conflicts three-way: Local, Result, Remote (⌘⇧M)</li><li>Tabs per panel, locked tabs, middle-click to open</li><li>A folder tree (⌘⇧K) and the search box: a few letters find the folders you use (⌘K)</li></ul>
-        <p class="keys"><kbd>⌘T</kbd> new tab <kbd>⌘K</kbd> search <kbd>⌘⇧M</kbd> resolve</p>
       </div>
     </div>
 
@@ -629,6 +629,12 @@
         <p class="keys"><kbd>↑↓</kbd><kbd>→</kbd><kbd>Tab</kbd><kbd>Insert</kbd> mark <kbd>⌘⌥S</kbd> sync browsing</p>
       </div>
       <div class="fcard">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="5" r="2"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="8" r="2"/><line x1="6" y1="7" x2="6" y2="17"/><path d="M18 10c0 5-6 4-11.5 7.5"/></svg></span>
+        <h3>Git in the panels</h3>
+        <p>A Git column marks each row modified, staged, new or ignored, and the path bar shows the branch and how far it is from upstream. Stage, commit, pull and push without leaving the panels; remotes and worktrees too, and merge conflicts resolved three-way.</p>
+        <p class="keys"><kbd>⌘⌥A</kbd> stage <kbd>⌘⌥C</kbd> commit <kbd>⌘P</kbd> push <kbd>⌘⇧M</kbd> resolve</p>
+      </div>
+      <div class="fcard">
         <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.8H20l-4.9 3.6 1.9 5.8-5-3.6-5 3.6 1.9-5.8L4 8.8h6.1z"/></svg></span>
         <h3>File ops that never lose data</h3>
         <p>F5 copy, F6 move/rename, F7 mkdir, F8 to the OS trash — permanent delete is a separate, always-confirmed action. Conflicts ask (overwrite / skip / rename / all). Long ops run with a cancellable progress dialog.</p>
@@ -692,8 +698,8 @@
       <div class="fcard">
         <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
         <h3>Go to folder, type to filter</h3>
-        <p>Go to folder with completion, the files below the panel's folder by a few letters in the search box (thv finds theme_view.rs), and letters that filter the panel as you type.</p>
-        <p class="keys"><kbd>⌘⇧G</kbd> go to folder <kbd>⌘K</kbd> search</p>
+        <p>Go to folder with completion, the files below the panel's folder by a few letters in the search box (thv finds theme_view.rs), and letters that filter the panel as you type. A folder tree beside the panel when you want one.</p>
+        <p class="keys"><kbd>⌘⇧G</kbd> go to folder <kbd>⌘K</kbd> search <kbd>⌘⇧K</kbd> tree</p>
       </div>
       <div class="fcard">
         <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.5 15a9 9 0 1 0 2.1-9.4L1 10"/></svg></span>
@@ -706,12 +712,6 @@
         <h3>Views per folder, layouts saved</h3>
         <p>Each folder remembers its sort and columns. Windows come back where they were, terminal included, and named layouts restore a whole setup in one go.</p>
         <p class="keys">Window menu</p>
-      </div>
-      <div class="fcard">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="14" height="11" rx="1.5"/><rect x="8" y="10" width="14" height="11" rx="1.5"/></svg></span>
-        <h3>Several windows, or tabs of one</h3>
-        <p>Open another yafim window in the same folders and work in each on its own — or merge them into tabs of one window, each still running everything it ran, all in one yafim with one Dock icon. ⌘Q quits them all, asking first if anything is still running — or not at all, if you prefer.</p>
-        <p class="keys"><kbd>⌘N</kbd> new <kbd>⌘`</kbd> switch Window › Merge all windows</p>
       </div>
       <span class="cluster"><i>//</i> looking at files</span>
       <div class="fcard">
