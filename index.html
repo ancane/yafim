@@ -329,6 +329,8 @@
   /* ── Features ────────────────────────────────────────── */
   .features { border-top: 1px solid var(--border); }
   .features .more { margin-top: 72px; padding-top: 56px; border-top: 1px solid var(--border); }
+  /* After a feature card, its own bottom line is the divider: no second one. */
+  .features .show-row + .more { margin-top: 0; border-top: none; }
   .fgrid {
     display: grid; grid-template-columns: 1fr; gap: 16px;
   }
