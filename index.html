@@ -507,7 +507,7 @@
       </div>
     </div>
     <div class="glass small">
-      <div class="g-op"><b>Go to folder</b> ⌘J <span style="color:var(--faint)">orb</span>
+      <div class="g-op"><b>Search</b> ⌘K <span style="color:var(--faint)">orb</span>
         <div style="margin-top:6px;color:var(--text)">~/projects/orbit</div>
         <div>~/work/orbit-ground</div>
       </div>
@@ -553,8 +553,8 @@
       <div>
         <h3>Git-aware panels and tabs</h3>
         <p>Turn on the Git column and every row shows whether it is modified, staged, new or ignored, with the branch and how far it is from upstream in the path bar. Stage, commit, pull and push without leaving the panels. Tabs keep several folders in each panel.</p>
-        <ul><li>Tools › Git: stage (⌘⌥A), commit with recent messages (⌘⌥C), pull, push, fetch; remotes and worktrees</li><li>Resolve merge conflicts three-way: Local, Result, Remote (⌘⇧M)</li><li>Tabs per panel, locked tabs, middle-click to open</li><li>A folder tree (⌘⇧K) and Go to folder: a few letters find the folders you use (⌘J)</li></ul>
-        <p class="keys"><kbd>⌘T</kbd> new tab <kbd>⌘J</kbd> go to folder <kbd>⌘⇧M</kbd> resolve</p>
+        <ul><li>Tools › Git: stage (⌘⌥A), commit with recent messages (⌘⌥C), pull, push, fetch; remotes and worktrees</li><li>Resolve merge conflicts three-way: Local, Result, Remote (⌘⇧M)</li><li>Tabs per panel, locked tabs, middle-click to open</li><li>A folder tree (⌘⇧K) and the search box: a few letters find the folders you use (⌘K)</li></ul>
+        <p class="keys"><kbd>⌘T</kbd> new tab <kbd>⌘K</kbd> search <kbd>⌘⇧M</kbd> resolve</p>
       </div>
     </div>
 
@@ -569,12 +569,12 @@
     </div>
 
     <div class="show-row flip">
-      <figure><a href="img/palette.webp"><img src="img/palette.webp" width="2048" height="1248" loading="lazy" alt="The command palette opened over the panels, on its File tab: New window, Close window, Cut, Copy, Paste, Move here, Multi-rename, Duplicate and more, each with its key."></a></figure>
+      <figure><a href="img/palette.webp"><img src="img/palette.webp" width="2048" height="1248" loading="lazy" alt="The search box opened over the panels with serv typed: the file server.rs in src first, then commands and settings — Server speed limit, Connect to server… with its key ⌥⌘K, Editing on server…, Thumbnails on servers — each row with its icon and its place."></a></figure>
       <div>
         <h3>F9 is the command palette</h3>
-        <p>Every command in one searchable list, in tabs that mirror the menus — plus Recent and Settings. Type a few letters to run anything, or walk the tabs with ← → to discover what yafim can do.</p>
-        <ul><li>Recent commands first, remembered between launches</li><li>Settings rows right in the results</li><li>The key for each command shown beside it</li></ul>
-        <p class="keys"><kbd>⌘⇧O</kbd> palette <kbd>F9</kbd> on this panel's tab <kbd>←</kbd><kbd>→</kbd> tabs</p>
+        <p>One search box for everything: the folders you use, the files below the panel's folder, your servers and every command, in one list, best first. Type a few letters to go anywhere or run anything, or open the commands in tabs that mirror the menus and walk them with ← → to discover what yafim can do.</p>
+        <ul><li>Opened, it lists the commands you ran lately, the folders you use most and your servers</li><li>&gt; keeps to the commands; a path goes on as Go to folder</li><li>Settings rows right in the results, and each command's key beside it</li></ul>
+        <p class="keys"><kbd>⌘K</kbd> search <kbd>F9</kbd> commands in tabs <kbd>←</kbd><kbd>→</kbd> tabs</p>
       </div>
     </div>
 
@@ -691,9 +691,9 @@
       </div>
       <div class="fcard">
         <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
-        <h3>Go to file, type to filter</h3>
-        <p>A fuzzy finder over everything below the panel's folder (thv finds theme_view.rs), Go to folder with completion, and letters that filter the panel as you type.</p>
-        <p class="keys"><kbd>⌘P</kbd> go to file <kbd>⌘⇧G</kbd> go to folder</p>
+        <h3>Go to folder, type to filter</h3>
+        <p>Go to folder with completion, the files below the panel's folder by a few letters in the search box (thv finds theme_view.rs), and letters that filter the panel as you type.</p>
+        <p class="keys"><kbd>⌘⇧G</kbd> go to folder <kbd>⌘K</kbd> search</p>
       </div>
       <div class="fcard">
         <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.5 15a9 9 0 1 0 2.1-9.4L1 10"/></svg></span>
@@ -811,7 +811,7 @@
         <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="7" rx="1.5"/><rect x="2" y="14" width="20" height="7" rx="1.5"/><line x1="6" y1="6.5" x2="6.01" y2="6.5"/><line x1="6" y1="17.5" x2="6.01" y2="17.5"/></svg></span>
         <h3>Servers and cloud drives</h3>
         <p>One panel on a server, the other on your machine, and everything works across: view, edit, copy and move both ways, permissions, find, archives. yafim runs your own <code>ssh</code>, so <code>~/.ssh/config</code>, keys, the agent and ProxyJump just work. FTP and FTPS servers, network shares, WebDAV, S3 buckets and every cloud drive rclone knows — Google Drive, OneDrive, Dropbox and more — open the same way, with share links one click away. Save a server with its password in the system's keychain, and edit a server file in your own editor — each save goes back up.</p>
-        <p class="keys"><kbd>⌘K</kbd> connect <kbd>⌥⇧F4</kbd> edit in your editor</p>
+        <p class="keys"><kbd>⌥⌘K</kbd> connect <kbd>⌥⇧F4</kbd> edit in your editor</p>
       </div>
       <div class="fcard">
         <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="10" x2="6.01" y2="10"/><line x1="10" y1="10" x2="10.01" y2="10"/><line x1="14" y1="10" x2="14.01" y2="10"/><line x1="18" y1="10" x2="18.01" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/></svg></span>
@@ -856,7 +856,7 @@
         <div class="keyrow" role="row"><span class="desc" role="cell">Find files by name / content</span><kbd role="cell">⌘F</kbd></div>
         <div class="keyrow" role="row"><span class="desc" role="cell">Quick folders 1–9 / the list</span><kbd role="cell">Ctrl+1…9 · ⌘S</kbd></div>
         <div class="keyrow" role="row"><span class="desc" role="cell">Switch drive</span><kbd role="cell">⌘⇧S</kbd></div>
-        <div class="keyrow" role="row"><span class="desc" role="cell">Connect to a server over SSH</span><kbd role="cell">⌘K</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Connect to a server over SSH</span><kbd role="cell">⌥⌘K</kbd></div>
         <div class="keyrow" role="row"><span class="desc" role="cell">Count size</span><kbd role="cell">⌥Space</kbd></div>
         <div class="keyrow" role="row"><span class="desc" role="cell">Back / forward / folder history</span><kbd role="cell">⌘← · ⌘→ · ⌘Y</kbd></div>
         <div class="keyrow" role="row"><span class="desc" role="cell">Select files (again: unselect)</span><kbd role="cell">⌘A</kbd></div>
@@ -866,8 +866,8 @@
         <div class="keyrow" role="row"><span class="desc" role="cell">Disk usage and cleanup</span><kbd role="cell">⌘⇧U</kbd></div>
         <div class="keyrow" role="row"><span class="desc" role="cell">Replace in files</span><kbd role="cell">⌘⌥F</kbd></div>
         <div class="keyrow" role="row"><span class="desc" role="cell">New window</span><kbd role="cell">⌘N</kbd></div>
-        <div class="keyrow" role="row"><span class="desc" role="cell">Command palette — every command, in tabs / on this panel's tab</span><kbd role="cell">⌘⇧O · F9</kbd></div>
-        <div class="keyrow" role="row"><span class="desc" role="cell">Go to folder / go to file</span><kbd role="cell">⌘J · ⌘P</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Search — folders, files, servers, commands / commands in tabs</span><kbd role="cell">⌘K · F9</kbd></div>
+        <div class="keyrow" role="row"><span class="desc" role="cell">Go to folder by its path</span><kbd role="cell">⌘⇧G</kbd></div>
         <div class="keyrow" role="row"><span class="desc" role="cell">New tab / folder tree</span><kbd role="cell">⌘T · ⌘⇧K</kbd></div>
         <div class="keyrow" role="row"><span class="desc" role="cell">Undo a move, rename or trash</span><kbd role="cell">⌘Z</kbd></div>
         <div class="keyrow" role="row"><span class="desc" role="cell">List / thumbnails / gallery of any folder</span><kbd role="cell">⌘⌥1 · ⌘⌥2 · ⌘G</kbd></div>
